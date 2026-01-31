@@ -54,10 +54,14 @@ export default function Home() {
             </p>
 
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <button className="group relative inline-flex h-14 w-full items-center justify-center gap-2 overflow-hidden rounded-2xl bg-primary px-8 font-bold text-white transition-all hover:bg-[#548a69] hover:shadow-xl hover:shadow-primary/20 sm:w-auto">
+              <a
+                href="/outgrow.apk"
+                download
+                className="group relative inline-flex h-14 w-full items-center justify-center gap-2 overflow-hidden rounded-2xl bg-primary px-8 font-bold text-white transition-all hover:bg-[#548a69] hover:shadow-xl hover:shadow-primary/20 sm:w-auto"
+              >
                 <Download className="h-5 w-5" />
                 <span>Download for Android</span>
-              </button>
+              </a>
               <Link
                 href="#features"
                 className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl border border-primary/20 bg-primary-soft px-8 font-bold text-primary transition-colors hover:bg-primary/10 sm:w-auto"
@@ -187,10 +191,14 @@ export default function Home() {
             <p className="mx-auto max-w-xl text-xl text-white/90 mb-12 font-medium">
               Join thousands of others who are reclaiming their time and focus with Outgrow.
             </p>
-            <button className="inline-flex h-16 items-center justify-center gap-3 rounded-full bg-white px-12 text-xl font-bold text-primary transition-transform hover:scale-105 active:scale-95 hover:shadow-2xl">
+            <a
+              href="/outgrow.apk"
+              download
+              className="inline-flex h-16 items-center justify-center gap-3 rounded-full bg-white px-12 text-xl font-bold text-primary transition-transform hover:scale-105 active:scale-95 hover:shadow-2xl"
+            >
               <Download className="h-6 w-6" />
               Download Outgrow
-            </button>
+            </a>
             <p className="mt-6 text-sm text-white/60 font-medium">
               Free to download • No ads • Private by design
             </p>
