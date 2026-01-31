@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+:root {
+  --background: #FDFCF8;
+  /* Paper White */
+  --foreground: #2C3E34;
+  /* Dark Green/Black */
+  --primary: #65A37E;
+  /* Muted Green */
+  --primary-soft: #EEF7F2;
+  --warm-beige: #F4F1EA;
+  --card-light: #FFFFFF;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #16201A;
+    /* Deep Green/Black */
+    --foreground: #F4F1EA;
+    /* Warm Beige text */
+    --primary: #65A37E;
+    --primary-soft: #1F2E26;
+    --warm-beige: #1F2E26;
+    --card-light: #1F2E26;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-soft: var(--primary-soft);
+  --color-warm-beige: var(--warm-beige);
+  --color-card: var(--card-light);
+
+  --font-serif: var(--font-merriweather);
+  --font-sans: var(--font-manrope);
+  --font-hand: var(--font-patrick-hand);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), sans-serif;
+  @apply antialiased selection:bg-[#65A37E] selection:text-white;
+}

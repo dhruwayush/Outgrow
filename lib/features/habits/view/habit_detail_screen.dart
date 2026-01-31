@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import '../../../core/theme/theme.dart';
+import 'package:lottie/lottie.dart';
+import '../../../../core/theme/theme.dart';
 import '../provider/habits_provider.dart';
 import '../model/habit.dart';
 
@@ -17,17 +19,17 @@ class HabitDetailScreen extends ConsumerWidget {
     final habitsAsync = ref.watch(habitsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textMain),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color),
           onPressed: () => context.pop(),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.more_horiz, color: AppColors.textMain),
+            icon: Icon(Icons.more_horiz, color: Theme.of(context).iconTheme.color),
             onPressed: () {
               // TODO: Show edit/delete options
             },
@@ -51,12 +53,50 @@ class HabitDetailScreen extends ConsumerWidget {
                   children: [
                     const SizedBox(height: 10),
                     // Flower Illustration
+                    // Flower Illustration
                     Hero(
                       tag: 'flower_${habit.id}',
-                      child: Image.asset(
-                        'assets/images/flower.png',
-                        height: 200,
-                        fit: BoxFit.contain,
+                      child: Container(
+                        padding: const EdgeInsets.all(30), // Increased padding for larger glow area
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Theme.of(context).brightness == Brightness.light
+                              ? AppColors.primarySoft.withValues(alpha: 0.3) // Solid base tint
+                              : Colors.white.withValues(alpha: 0.05),
+                          gradient: RadialGradient(
+                            colors: [
+                              Theme.of(context).brightness == Brightness.light
+                                  ? AppColors.primary.withValues(alpha: 0.15) // Stronger center
+                                  : Colors.white.withValues(alpha: 0.1),
+                              Colors.transparent,
+                            ],
+                            stops: const [0.0, 0.7],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Theme.of(context).brightness == Brightness.light
+                                  ? AppColors.primary.withValues(alpha: 0.1)
+                                  : Colors.transparent,
+                              blurRadius: 40,
+                              spreadRadius: 10,
+                            ),
+                          ],
+                        ),
+                        child: Lottie.asset(
+                          'assets/animations/lotus_flower.json',
+                          height: 220,
+                          fit: BoxFit.contain,
+                          // Optional: Check if we need to repeat or play once. Usually bloom is played once or looped breathing.
+                          // Let's loop it gently if it's a loopable animation, or just play.
+                          repeat: true, 
+                        ),
+                      )
+                      .animate(onPlay: (c) => c.repeat(reverse: true))
+                      .scaleXY(
+                        begin: 1.0,
+                        end: 1.05,
+                        duration: 2000.ms,
+                        curve: Curves.easeInOut,
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -87,7 +127,7 @@ class HabitDetailScreen extends ConsumerWidget {
                       style: GoogleFonts.merriweather(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textMain,
+                        color: Theme.of(context).textTheme.headlineMedium?.color,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -95,7 +135,7 @@ class HabitDetailScreen extends ConsumerWidget {
                       "$isCleanDays days of nurturing yourself",
                       style: GoogleFonts.manrope(
                         fontSize: 16,
-                        color: AppColors.textMuted,
+                        color: Theme.of(context).textTheme.bodyMedium?.color,
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -124,15 +164,19 @@ class HabitDetailScreen extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: AppColors.primarySoft,
+                        color: Theme.of(context).brightness == Brightness.light
+                            ? AppColors.primarySoft
+                            : AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: Row(
                         children: [
                           Container(
                             padding: const EdgeInsets.all(10),
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).brightness == Brightness.light
+                                  ? Colors.white
+                                  : Colors.white.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(Icons.auto_awesome, color: AppColors.primary, size: 20),
@@ -140,10 +184,10 @@ class HabitDetailScreen extends ConsumerWidget {
                           const SizedBox(width: 16),
                           Expanded(
                             child: Text(
-                              "You're doing gently. That's 15% more peace than last month. Each day counts.",
-                              style: GoogleFonts.manrope(
-                                color: AppColors.textMain,
-                                fontSize: 13,
+                                _getInsightMessage(habit),
+                                style: GoogleFonts.manrope(
+                                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                                  fontSize: 13,
                                 height: 1.4,
                               ),
                             ),
@@ -375,7 +419,7 @@ class _StatCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
              BoxShadow(
@@ -397,7 +441,7 @@ class _StatCard extends StatelessWidget {
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1.0,
-                    color: AppColors.textMuted.withValues(alpha: 0.6),
+                    color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.6),
                   ),
                 ),
                 Icon(icon, size: 18, color: AppColors.warmBeige.withValues(alpha: 1.0) /* using a beige icon tint */),
@@ -413,7 +457,7 @@ class _StatCard extends StatelessWidget {
                   style: GoogleFonts.merriweather(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textMain,
+                    color: Theme.of(context).textTheme.headlineMedium?.color,
                   ),
                 ),
                 const SizedBox(width: 6),
@@ -421,7 +465,7 @@ class _StatCard extends StatelessWidget {
                   suffix,
                   style: GoogleFonts.manrope(
                     fontSize: 14,
-                    color: AppColors.textMuted,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
                   ),
                 ),
               ],
@@ -445,7 +489,7 @@ class _CalendarCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(30),
          boxShadow: [
              BoxShadow(
@@ -466,7 +510,7 @@ class _CalendarCard extends StatelessWidget {
                 style: GoogleFonts.manrope(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textMain,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
               ),
               Icon(Icons.chevron_right, color: AppColors.textMuted),
@@ -513,7 +557,7 @@ class _CalendarGrid extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: weekDays.map((d) => SizedBox(
             width: 30,
-            child: Text(d, textAlign: TextAlign.center, style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+            child: Text(d, textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 12)),
           )).toList(),
         ),
         const SizedBox(height: 16),
@@ -549,7 +593,7 @@ class _CalendarGrid extends StatelessWidget {
                   child: Text(
                     "$day",
                     style: TextStyle(
-                      color: isToday ? Colors.white : AppColors.textMuted,
+                      color: isToday ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -578,4 +622,44 @@ class _CalendarGrid extends StatelessWidget {
     if (habit.slipDates.any((d) => d.year == date.year && d.month == date.month && d.day == date.day)) return 2;
     return 0;
   }
+}
+  
+String _getInsightMessage(Habit habit) {
+  final now = DateTime.now();
+  final currentMonth = DateUtils.dateOnly(DateTime(now.year, now.month, 1));
+  final lastMonth = DateUtils.dateOnly(DateTime(now.year, now.month - 1, 1));
+
+  // Calculate counts
+  final thisMonthCount = habit.checkInDates.where((d) => 
+    d.year == currentMonth.year && d.month == currentMonth.month
+  ).length;
+
+  final lastMonthCount = habit.checkInDates.where((d) => 
+    d.year == lastMonth.year && d.month == lastMonth.month
+  ).length;
+
+  // Logic: If we have data for both months
+  if (lastMonthCount > 0) {
+    if (thisMonthCount > lastMonthCount) {
+      final increase = ((thisMonthCount - lastMonthCount) / lastMonthCount * 100).round();
+      return "You're doing gently. That's $increase% more peace than last month. Each day counts.";
+    } else if (thisMonthCount == lastMonthCount) {
+      return "You're maintaining your peace steadily. Consistency is the quietest form of growth.";
+    } else {
+      return "Every month is different. Be kind to yourself as you navigate the ebb and flow.";
+    }
+  }
+
+  // Fallback Quotes if inadequate data (e.g., new habit or no last month data)
+  final quotes = [
+    "Small steps are still steps. You are moving forward.",
+    "Be gentle with yourself. You are doing the best you can.",
+    "Growth is a spiral process, doubling back on itself to reassess and regroup.",
+    "Your direction is more important than your speed.",
+    "Every moment is a new beginning. Reset breath, and begin again.",
+  ];
+  
+  // Pick based on day of year to be consistent for the day, but rotate daily
+  final quoteIndex = now.day % quotes.length;
+  return quotes[quoteIndex];
 }

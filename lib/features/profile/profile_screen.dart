@@ -136,7 +136,16 @@ class ProfileScreen extends ConsumerWidget {
                       "Outgrow v1.0.0",
                       style: GoogleFonts.manrope(
                         fontSize: 12,
-                        color: AppColors.textMuted.withOpacity(0.5),
+                        color: AppColors.textMain.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Made with ❤️ by Dhruwayush",
+                      style: GoogleFonts.manrope(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textMain.withValues(alpha: 0.5),
                       ),
                     ),
                   ],

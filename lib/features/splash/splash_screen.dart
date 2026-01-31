@@ -51,6 +51,15 @@ class _SplashScreenState extends State<SplashScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              Hero(
+                tag: 'app_logo',
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  height: 120,
+                  width: 120,
+                ),
+              ).animate().fadeIn(duration: 800.ms).scale(begin: const Offset(0.8, 0.8), end: const Offset(1.0, 1.0), duration: 800.ms, curve: Curves.elasticOut),
+              const SizedBox(height: 24),
               Text(
                 "Outgrow",
                 style: GoogleFonts.manrope(
@@ -59,7 +68,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   color: AppColors.textMain,
                   letterSpacing: -1.0,
                 ),
-              ).animate().fadeIn(duration: 800.ms).slideY(begin: 0.2, end: 0, duration: 800.ms, curve: Curves.easeOut),
+              ).animate().fadeIn(delay: 200.ms, duration: 800.ms).slideY(begin: 0.2, end: 0, duration: 800.ms, curve: Curves.easeOut),
               const SizedBox(height: 12),
               Text(
                 "Track the days you didn't.",
