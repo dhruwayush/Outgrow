@@ -1,4 +1,4 @@
-package com.example.outgrow
+package com.dhruwayush.outgrow
 
 import io.flutter.embedding.android.FlutterActivity
 
