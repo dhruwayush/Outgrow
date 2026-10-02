@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../model/habit.dart';
 import '../model/slip_event.dart';
+import '../model/streak.dart';
 import '../repository/habits_repository.dart';
 import '../../gamification/badges_provider.dart';
 
@@ -11,12 +12,19 @@ final habitsProvider = AsyncNotifierProvider<HabitsNotifier, List<Habit>>(() {
 });
 
 class HabitsNotifier extends AsyncNotifier<List<Habit>> {
-  late final HabitsRepository _repository;
+  HabitsRepository get _repository => ref.read(habitsRepositoryProvider);
 
   @override
   Future<List<Habit>> build() async {
-    _repository = ref.watch(habitsRepositoryProvider);
-    return _repository.getHabits();
+    return ref.watch(habitsRepositoryProvider).getHabits();
+  }
+
+  Habit? _findHabit(String habitId) =>
+      state.asData?.value.where((h) => h.id == habitId).firstOrNull;
+
+  Future<void> _save(Habit habit) async {
+    await _repository.updateHabit(habit);
+    state = AsyncValue.data(await _repository.getHabits());
   }
 
   Future<void> addHabit(String name, String category) async {
@@ -31,60 +39,72 @@ class HabitsNotifier extends AsyncNotifier<List<Habit>> {
     }
   }
 
+  /// Logs "I avoided it today". Only one log per day: does nothing if today
+  /// already has a check-in or a slip.
   Future<void> checkIn(String habitId) async {
-    // Logic for "I didn't do this today" (Success)
-    // Update streak, add checkInDate
-    // This is business logic, maybe belongs here or in separate use case.
-    // For MVP, here is fine.
-    
-    final currentList = state.asData?.value;
-    if (currentList == null) return;
-    
-    final habit = currentList.firstWhere((h) => h.id == habitId);
+    final habit = _findHabit(habitId);
+    if (habit == null) return;
+
     final now = DateTime.now();
-    
-    // Check if already checked in today?
-    // TODO: Implement check
-    
+    if (habit.hasCheckedInOn(now) || habit.hasSlippedOn(now)) return;
+
+    final checkInDates = [...habit.checkInDates, now];
+    final streak = calculateCurrentStreak(checkInDates, habit.slipDates, now);
+
     final newHabit = habit.copyWith(
-      currentStreak: habit.currentStreak + 1,
-      bestStreak: (habit.currentStreak + 1 > habit.bestStreak) 
-          ? habit.currentStreak + 1 
-          : habit.bestStreak,
-      checkInDates: [...habit.checkInDates, now],
+      currentStreak: streak,
+      bestStreak: calculateLongestStreak(checkInDates, habit.slipDates),
+      checkInDates: checkInDates,
       lastActivityDate: now,
     );
-    
+
     // Badge Logic
-    final newStreak = habit.currentStreak + 1;
-    if (newStreak >= 1) ref.read(badgesProvider.notifier).unlock('first_step');
-    if (newStreak >= 7) ref.read(badgesProvider.notifier).unlock('week_warrior');
-    
-    await _repository.updateHabit(newHabit);
-    state = AsyncValue.data(await _repository.getHabits()); 
+    final badges = ref.read(badgesProvider.notifier);
+    if (streak >= 1) badges.unlock('first_step');
+    if (streak >= 7) badges.unlock('week_warrior');
+
+    await _save(newHabit);
   }
 
-  Future<void> slip(String habitId, String trigger) async {
-     // Logic for Slip
-     // Reset current streak, but keep best. Log slip date.
-     final currentList = state.asData?.value;
-    if (currentList == null) return;
-    
-    final habit = currentList.firstWhere((h) => h.id == habitId);
+  /// Logs a slip. Resets the current streak but keeps the best one. A slip
+  /// replaces a check-in made earlier the same day, since the day wasn't clean.
+  Future<void> slip(String habitId, String trigger, {String? note}) async {
+    final habit = _findHabit(habitId);
+    if (habit == null) return;
+
     final now = DateTime.now();
+    final checkInDates =
+        habit.checkInDates.where((d) => !isSameDay(d, now)).toList();
+    final slipDates = [...habit.slipDates, now];
+    final trimmedNote = note?.trim();
 
     final newHabit = habit.copyWith(
       currentStreak: 0,
-      slipDates: [...habit.slipDates, now],
+      bestStreak: calculateLongestStreak(checkInDates, slipDates),
+      checkInDates: checkInDates,
+      slipDates: slipDates,
       lastActivityDate: now,
-      slipEvents: [...habit.slipEvents, SlipEvent(date: now, triggers: trigger)],
+      slipEvents: [
+        ...habit.slipEvents,
+        SlipEvent(
+          date: now,
+          triggers: trigger,
+          note: (trimmedNote == null || trimmedNote.isEmpty) ? null : trimmedNote,
+        ),
+      ],
     );
 
     // Badge Logic
     ref.read(badgesProvider.notifier).unlock('honest_tracker');
 
-    await _repository.updateHabit(newHabit);
-    state = AsyncValue.data(await _repository.getHabits());
+    await _save(newHabit);
+  }
+
+  Future<void> renameHabit(String habitId, String name) async {
+    final habit = _findHabit(habitId);
+    final trimmed = name.trim();
+    if (habit == null || trimmed.isEmpty) return;
+    await _save(habit.copyWith(name: trimmed));
   }
 
   Future<void> deleteHabit(String habitId) async {

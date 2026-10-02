@@ -6,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/theme.dart';
 import '../habits/provider/habits_provider.dart';
 import '../habits/model/habit.dart';
-import '../habits/model/habit.dart';
 import '../profile/profile_screen.dart';
 import '../insights/insights_screen.dart';
 
@@ -264,7 +263,7 @@ class _HabitCard extends StatelessWidget {
                               const Icon(Icons.local_fire_department, size: 16, color: AppColors.primary),
                               const SizedBox(width: 4),
                               Text(
-                                "${habit.currentStreak} days",
+                                "${habit.activeStreak} days",
                                 style: const TextStyle(
                                   color: AppColors.primary,
                                   fontWeight: FontWeight.w600,
@@ -276,7 +275,7 @@ class _HabitCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          "Best: ${habit.bestStreak}",
+                          "Best: ${habit.longestStreak}",
                           style: TextStyle(
                             color: AppColors.textMuted.withValues(alpha: 0.6),
                             fontSize: 12,
@@ -305,23 +304,8 @@ class _CheckInButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    bool isCheckedIn = false;
-    
-    bool isClean = false;
-    bool isSlip = false;
-    
-    // Check clean
-    if (habit.checkInDates.any((d) => 
-         d.year == now.year && d.month == now.month && d.day == now.day)) {
-       isClean = true;
-    }
-    
-    // Check slip
-    if (habit.slipDates.any((d) => 
-         d.year == now.year && d.month == now.month && d.day == now.day)) {
-       isSlip = true;
-    }
+    final isClean = habit.hasCheckedInOn(now);
+    final isSlip = habit.hasSlippedOn(now);
 
     if (isClean) {
       return Container(

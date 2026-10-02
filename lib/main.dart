@@ -41,7 +41,7 @@ class OutgrowApp extends ConsumerWidget {
     final themeMode = ref.watch(themeProvider);
     
     return MaterialApp.router(
-      title: 'Habit Exit Tracker',
+      title: 'Outgrow',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,

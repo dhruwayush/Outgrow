@@ -133,7 +133,7 @@ class InsightsScreen extends ConsumerWidget {
                       const SizedBox(height: 32),
                        _PatternCard(
                           title: "Wins vs Slips",
-                          content: "You have ${habits.map((h) => h.checkInDates.length).fold(0, (a, b) => a + b)} clean days recorded.",
+                          content: "You have ${habits.map((h) => h.cleanDayCount).fold(0, (a, b) => a + b)} clean days recorded.",
                           subContent: "Keep going.",
                           icon: Icons.emoji_events_outlined,
                           color: AppColors.primary,

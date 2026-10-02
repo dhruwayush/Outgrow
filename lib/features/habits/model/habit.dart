@@ -1,6 +1,7 @@
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 import 'slip_event.dart';
+import 'streak.dart';
 
 part 'habit.g.dart';
 
@@ -19,10 +20,10 @@ class Habit extends HiveObject {
   final DateTime startDate;
 
   @HiveField(4)
-  final int currentStreak;
+  final int currentStreak; // Cached at last log; read [activeStreak] for display.
 
   @HiveField(5)
-  final int bestStreak;
+  final int bestStreak; // Cached at last log; read [longestStreak] for display.
 
   @HiveField(6)
   final List<DateTime> checkInDates; // Dates where user said "I didn't do it" (Success)
@@ -57,6 +58,19 @@ class Habit extends HiveObject {
       startDate: DateTime.now(),
     );
   }
+
+  /// Current streak computed from the logged dates, so it drops to 0 once a
+  /// day passes without a check-in.
+  int get activeStreak =>
+      calculateCurrentStreak(checkInDates, slipDates, DateTime.now());
+
+  int get longestStreak => calculateLongestStreak(checkInDates, slipDates);
+
+  int get cleanDayCount => cleanDays(checkInDates, slipDates).length;
+
+  bool hasCheckedInOn(DateTime day) => checkInDates.any((d) => isSameDay(d, day));
+
+  bool hasSlippedOn(DateTime day) => slipDates.any((d) => isSameDay(d, day));
 
   Habit copyWith({
     String? name,

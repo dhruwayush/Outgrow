@@ -82,7 +82,7 @@ class _CreateHabitScreenState extends ConsumerState<CreateHabitScreen> {
                         ),
                         decoration: InputDecoration(
                           hintText: "e.g. Late-night scrolling",
-                          hintStyle: TextStyle(color: AppColors.textMuted.withOpacity(0.5)),
+                          hintStyle: TextStyle(color: AppColors.textMuted.withValues(alpha: 0.5)),
                           filled: true,
                           fillColor: Theme.of(context).cardColor,
                           border: OutlineInputBorder(
@@ -130,7 +130,7 @@ class _CreateHabitScreenState extends ConsumerState<CreateHabitScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(24),
-                              side: BorderSide(color: isSelected ? Colors.transparent : AppColors.primary.withOpacity(0.2)),
+                              side: BorderSide(color: isSelected ? Colors.transparent : AppColors.primary.withValues(alpha: 0.2)),
                             ),
                           );
                         }).toList(),
@@ -162,11 +162,18 @@ class _CreateHabitScreenState extends ConsumerState<CreateHabitScreen> {
     );
   }
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
   void _createHabit() {
-    if (_nameController.text.isEmpty) return;
-    
+    final name = _nameController.text.trim();
+    if (name.isEmpty) return;
+
     ref.read(habitsProvider.notifier).addHabit(
-      _nameController.text,
+      name,
       _selectedCategory ?? 'other',
     );
     
