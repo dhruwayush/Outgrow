@@ -40,7 +40,7 @@ class ProfileScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -89,7 +89,7 @@ class ProfileScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -102,7 +102,7 @@ class ProfileScreen extends ConsumerWidget {
                           style: GoogleFonts.merriweather(fontWeight: FontWeight.bold)
                         ),
                         subtitle: Text(
-                          "${habit.currentStreak} day streak",
+                          "${habit.activeStreak} day streak",
                           style: GoogleFonts.manrope(color: AppColors.textMuted, fontSize: 12),
                         ),
                         trailing: IconButton(
@@ -128,7 +128,7 @@ class ProfileScreen extends ConsumerWidget {
                       "Fall. Reset. Continue.",
                       style: GoogleFonts.patrickHand(
                         fontSize: 24,
-                        color: AppColors.textMuted.withOpacity(0.8),
+                        color: AppColors.textMuted.withValues(alpha: 0.8),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -229,12 +229,12 @@ class _BadgesGrid extends ConsumerWidget {
                   color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: isUnlocked ? badge.color.withOpacity(0.3) : Colors.transparent,
+                    color: isUnlocked ? badge.color.withValues(alpha: 0.3) : Colors.transparent,
                     width: 2,
                   ),
                    boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -245,7 +245,7 @@ class _BadgesGrid extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: isUnlocked ? badge.color.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
+                        color: isUnlocked ? badge.color.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(

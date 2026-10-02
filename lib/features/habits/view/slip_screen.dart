@@ -21,6 +21,12 @@ class _SlipScreenState extends ConsumerState<SlipScreen> {
   final Set<String> _selectedTriggers = {};
 
   @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
@@ -222,7 +228,11 @@ class _SlipScreenState extends ConsumerState<SlipScreen> {
   Future<void> _submitSlip() async {
     final triggers = _selectedTriggers.join(', ');
     try {
-      await ref.read(habitsProvider.notifier).slip(widget.habitId, triggers);
+      await ref.read(habitsProvider.notifier).slip(
+            widget.habitId,
+            triggers,
+            note: _noteController.text,
+          );
       if (mounted) {
         context.pop();
       }

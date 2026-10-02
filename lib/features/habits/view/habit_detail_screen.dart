@@ -30,20 +30,18 @@ class HabitDetailScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: Icon(Icons.more_horiz, color: Theme.of(context).iconTheme.color),
-            onPressed: () {
-              // TODO: Show edit/delete options
-            },
+            onPressed: () => _showHabitMenu(context, ref),
           ),
         ],
       ),
       body: habitsAsync.when(
         data: (habits) {
-          final habit = habits.firstWhere(
-            (h) => h.id == habitId,
-            orElse: () => throw Exception('Habit not found'),
-          );
-          
-          final isCleanDays = habit.checkInDates.length;
+          final habit = habits.where((h) => h.id == habitId).firstOrNull;
+          if (habit == null) {
+            return const Center(child: Text('This habit no longer exists.'));
+          }
+
+          final isCleanDays = habit.cleanDayCount;
 
           return Stack(
             children: [
@@ -145,7 +143,7 @@ class HabitDetailScreen extends ConsumerWidget {
                       children: [
                         _StatCard(
                           label: "BEST STREAK",
-                          value: "${habit.bestStreak}",
+                          value: "${habit.longestStreak}",
                           suffix: "days",
                           icon: Icons.emoji_events_outlined,
                         ),
@@ -153,7 +151,7 @@ class HabitDetailScreen extends ConsumerWidget {
                         _StatCard(
                           label: "TOTAL CLEAN",
                           value: "$isCleanDays",
-                          suffix: "/ 60", // Placeholder goal?
+                          suffix: "days",
                           icon: Icons.calendar_today_outlined,
                         ),
                       ],
@@ -236,12 +234,8 @@ class HabitDetailScreen extends ConsumerWidget {
                 bottom: 24,
                 child: (() {
                   final now = DateTime.now();
-                  final isCleanToday = habit.checkInDates.any(
-                    (d) => d.year == now.year && d.month == now.month && d.day == now.day
-                  );
-                  final isSlipToday = habit.slipDates.any(
-                    (d) => d.year == now.year && d.month == now.month && d.day == now.day
-                  );
+                  final isCleanToday = habit.hasCheckedInOn(now);
+                  final isSlipToday = habit.hasSlippedOn(now);
 
                   if (isCleanToday) {
                     return Container(
@@ -318,6 +312,94 @@ class HabitDetailScreen extends ConsumerWidget {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, st) => Center(child: Text('Error: $err')),
+      ),
+    );
+  }
+
+  void _showHabitMenu(BuildContext context, WidgetRef ref) {
+    final habit = ref.read(habitsProvider).asData?.value
+        .where((h) => h.id == habitId)
+        .firstOrNull;
+    if (habit == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.edit_outlined),
+              title: const Text('Rename'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _showRenameDialog(context, ref, habit);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline, color: Colors.redAccent),
+              title: const Text('Delete', style: TextStyle(color: Colors.redAccent)),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _showDeleteDialog(context, ref, habit);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showRenameDialog(BuildContext context, WidgetRef ref, Habit habit) {
+    final controller = TextEditingController(text: habit.name);
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Rename habit'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          textCapitalization: TextCapitalization.sentences,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              ref.read(habitsProvider.notifier).renameHabit(habit.id, controller.text);
+              Navigator.pop(dialogContext);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteDialog(BuildContext context, WidgetRef ref, Habit habit) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete Habit'),
+        content: Text("Are you sure you want to delete '${habit.name}'? This cannot be undone."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              final notifier = ref.read(habitsProvider.notifier);
+              Navigator.pop(dialogContext);
+              // Leave the detail screen before the habit disappears from under it.
+              context.pop();
+              notifier.deleteHabit(habit.id);
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
       ),
     );
   }
@@ -536,13 +618,7 @@ class _CalendarGrid extends StatelessWidget {
     // Need to find first day of month and days in month
     final firstDay = DateTime(now.year, now.month, 1);
     final daysInMonth = DateUtils.getDaysInMonth(now.year, now.month);
-    final startingWeekday = firstDay.weekday; // 1 = Mon, 7 = Sun. 
-    // Reference starts with S (Sun). 
-    // If startingWeekday is 1 (Mon), we need 1 offset if Sun is first.
-    // Let's assume Mon start for simplicty or match generic. 
-    // Image S M T W T F S => Sun start.
-    
-    // M T W T F S S
+    // Sunday-first week, matching the S M T W T F S header.
     List<String> weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
     
     // We need to pad the beginning
@@ -578,7 +654,6 @@ class _CalendarGrid extends StatelessWidget {
             final date = DateTime(now.year, now.month, day);
             final status = _getStatus(date);
             final isToday = date.day == now.day;
-            final isSelected = day == 15; // Mock selection from image? No, just use Today logic.
             
             return Column(
               children: [
@@ -618,8 +693,9 @@ class _CalendarGrid extends StatelessWidget {
   }
 
   int _getStatus(DateTime date) {
-    if (habit.checkInDates.any((d) => d.year == date.year && d.month == date.month && d.day == date.day)) return 1;
-    if (habit.slipDates.any((d) => d.year == date.year && d.month == date.month && d.day == date.day)) return 2;
+    // A slip outweighs a check-in on the same day.
+    if (habit.hasSlippedOn(date)) return 2;
+    if (habit.hasCheckedInOn(date)) return 1;
     return 0;
   }
 }

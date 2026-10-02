@@ -12,10 +12,10 @@ class SuccessScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Calculate stats: wins in last 7 days
+    // Calculate stats: wins in the last 7 calendar days, today included
     final now = DateTime.now();
-    final sevenDaysAgo = now.subtract(const Duration(days: 7));
-    final winsLast7Days = habit.checkInDates.where((d) => d.isAfter(sevenDaysAgo)).length;
+    final weekStart = DateTime(now.year, now.month, now.day - 6);
+    final winsLast7Days = habit.checkInDates.where((d) => !d.isBefore(weekStart)).length;
 
     return Scaffold(
       backgroundColor: AppColors.primary,
